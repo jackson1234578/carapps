@@ -1,0 +1,55 @@
+name: Build Tweak & Sileo Repo
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Theos & Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fakeroot dpkg-dev bzip2 curl unzip clang
+          git clone --recursive https://github.com $HOME/theos
+          mkdir -p $HOME/theos/sdks
+          curl -L https://github.com -o sdks.zip
+          unzip -q sdks.zip
+          mv sdks-master/*.sdk $HOME/theos/sdks/
+
+      - name: Compile Rootless DEB
+        env:
+          THEOS: /home/runner/theos
+        run: |
+          make package FINALPACKAGE=1
+
+      - name: Generate Sileo Repo Files
+        run: |
+          mkdir -p repo/debs
+          cp packages/*.deb repo/debs/
+          cd repo
+          dpkg-scanpackages -m ./debs > Packages
+          bzip2 -c9 Packages > Packages.bz2
+          cat <<EOF > Release
+          Origin: CarParkApps Repo
+          Label: CarParkApps
+          Suite: stable
+          Version: 1.0
+          Codename: ios
+          Architectures: iphoneos-arm64
+          Components: main
+          Description: Custom iOS 17 Rootless CarPlay Tweak Repo
+          EOF
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./repo
