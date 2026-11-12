@@ -1,0 +1,9 @@
+Package: com.custom.carparkapps
+Name: CarParkApps
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Enables non-CarPlay apps on CarPlay when the vehicle is stationary/parked (iOS 17 rootless).
+Maintainer: CustomDev
+Author: CustomDev
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000)
