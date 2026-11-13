@@ -1,9 +1,10 @@
 yaml
-name: Build Tweak & Sileo Repo
+name: Build Tweak and Sileo Repo
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -20,12 +21,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Repo Tools
-        run: |
-          apt-get update && apt-get install -y dpkg-dev bzip2
+        run: apt-get update && apt-get install -y dpkg-dev bzip2
 
       - name: Compile Rootless DEB
-        run: |
-          make package FINALPACKAGE=1
+        run: make package FINALPACKAGE=1
 
       - name: Generate Sileo Repo Files
         run: |
@@ -34,16 +33,7 @@ jobs:
           cd repo
           dpkg-scanpackages -m ./debs > Packages
           bzip2 -c9 Packages > Packages.bz2
-          cat <<EOF > Release
-          Origin: CarParkApps Repo
-          Label: CarParkApps
-          Suite: stable
-          Version: 1.0
-          Codename: ios
-          Architectures: iphoneos-arm64
-          Components: main
-          Description: Custom iOS 17 Rootless CarPlay Tweak Repo
-          EOF
+          printf "Origin: CarParkApps Repo\nLabel: CarParkApps\nSuite: stable\nVersion: 1.0\nCodename: ios\nArchitectures: iphoneos-arm64\nComponents: main\nDescription: Custom iOS 17 Rootless CarPlay Tweak Repo\n" > Release
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
