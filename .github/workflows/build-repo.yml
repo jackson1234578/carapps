@@ -1,3 +1,4 @@
+yaml
 name: Build Tweak & Sileo Repo
 
 on:
@@ -10,23 +11,19 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/theos/theos:latest
+      options: --user root
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Theos & Dependencies
+      - name: Install Repo Tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y fakeroot dpkg-dev bzip2 curl unzip clang
-          git clone --recursive https://github.com $HOME/theos
-          mkdir -p $HOME/theos/sdks
-          curl -L https://github.com -o sdks.zip
-          unzip -q sdks.zip
-          mv sdks-master/*.sdk $HOME/theos/sdks/
+          apt-get update && apt-get install -y dpkg-dev bzip2
 
       - name: Compile Rootless DEB
-        env:
-          THEOS: /home/runner/theos
         run: |
           make package FINALPACKAGE=1
 
